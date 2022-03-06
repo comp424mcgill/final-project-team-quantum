@@ -38,14 +38,17 @@ class StudentAgent(Agent):
         """
         # dummy return
         possible_steps = self.get_legal_move(chess_board, my_pos, adv_pos, max_step)
+        print(possible_steps)
         return possible_steps[0][0], possible_steps[0][1]
 
     def get_legal_move(self, chess_board, my_pos, adv_pos, max_step):
+        # get the dimensions of the board
+        x_list = [-1, 0, 1, 0]
+        y_list = [0, 1, 0, -1]
         x_max = chess_board.shape[0]
         y_max = chess_board.shape[1]
         step_record = np.zeros((x_max, y_max))
-        x_list = [1, 0, -1, 0]
-        y_list = [0, 1, 0, -1]
+
         step_record[my_pos[0]][my_pos[1]] = 1
         step_record[adv_pos[0]][adv_pos[1]] = 2
         next_step = [my_pos]
@@ -54,19 +57,17 @@ class StudentAgent(Agent):
             lens = len(next_step)
             for j in range(lens):
                 curLoc = next_step.pop(0)
-                for k in range(4): # diraction
+                for k in range(4):  # direction
                     x = curLoc[0] + x_list[k]
                     y = curLoc[1] + y_list[k]
                     if 0 <= x < x_max and 0 <= y < y_max and step_record[x][y] == 0 and not chess_board[curLoc[0]][curLoc[1]][k]:
                         step_record[x][y] = 1
                         next_step.append((x, y))
 
-        print("record", step_record)
         possible_moves = []
         for i in range(x_max):
             for j in range(y_max):
                 if step_record[i][j] == 1:
-
                     for k in range(4):
                         if not chess_board[i][j][k]:
                             possible_moves.append(((i, j), k))
