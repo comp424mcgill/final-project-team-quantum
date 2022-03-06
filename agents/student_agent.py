@@ -37,34 +37,38 @@ class StudentAgent(Agent):
         Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
         """
         # dummy return
-        return my_pos, self.dir_map["u"]
+        possible_steps = self.get_legal_move(chess_board, my_pos, adv_pos, max_step)
+        return possible_steps[0][0], possible_steps[0][1]
 
     def get_legal_move(self, chess_board, my_pos, adv_pos, max_step):
-        (x_max, y_max, _) = chess_board.shape()
+        x_max = chess_board.shape[0]
+        y_max = chess_board.shape[1]
         step_record = np.zeros((x_max, y_max))
-        y_list = [1, 0, -1, 0]
-        x_list = [0, 1, 0, -1]
-
+        x_list = [1, 0, -1, 0]
+        y_list = [0, 1, 0, -1]
         step_record[my_pos[0]][my_pos[1]] = 1
         step_record[adv_pos[0]][adv_pos[1]] = 2
         next_step = [my_pos]
 
         for i in range(max_step):
-            for j in range(len(next_step)):
-                curLoc = next_step.popleft()
-                for k in range(4):
-                    x = x_list[k]
-                    y = y_list[k]
-                    if chess_board[x][y][k] and step_record[x][y] == 0:
-                        targetLoc = (curLoc[0] + x, curLoc[1] + y)
-                        step_record[curLoc[0] + x][curLoc[1] + y] = 1
-                        next_step.append(targetLoc)
+            lens = len(next_step)
+            for j in range(lens):
+                curLoc = next_step.pop(0)
+                for k in range(4): # diraction
+                    x = curLoc[0] + x_list[k]
+                    y = curLoc[1] + y_list[k]
+                    if 0 <= x < x_max and 0 <= y < y_max and step_record[x][y] == 0 and not chess_board[curLoc[0]][curLoc[1]][k]:
+                        step_record[x][y] = 1
+                        next_step.append((x, y))
+
+        print("record", step_record)
         possible_moves = []
         for i in range(x_max):
             for j in range(y_max):
                 if step_record[i][j] == 1:
+
                     for k in range(4):
-                        if not chess_board[x][y][k]:
+                        if not chess_board[i][j][k]:
                             possible_moves.append(((i, j), k))
 
         return possible_moves
