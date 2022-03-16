@@ -38,7 +38,8 @@ class StudentAgent(Agent):
         """
         # dummy return
         possible_steps = self.get_legal_move(chess_board, my_pos, adv_pos, max_step)
-        print(possible_steps)
+        result, my_score, adv_score = self.get_game_result(chess_board, my_pos, adv_pos)
+        print(result, my_score, adv_score)
         return possible_steps[0][0], possible_steps[0][1]
 
     def get_legal_move(self, chess_board, my_pos, adv_pos, max_step):
@@ -60,7 +61,9 @@ class StudentAgent(Agent):
                 for k in range(4):  # direction
                     x = curLoc[0] + x_list[k]
                     y = curLoc[1] + y_list[k]
-                    if 0 <= x < x_max and 0 <= y < y_max and step_record[x][y] == 0 and not chess_board[curLoc[0]][curLoc[1]][k]:
+                    if 0 <= x < x_max and 0 <= y < y_max \
+                            and step_record[x][y] == 0 \
+                            and not chess_board[curLoc[0]][curLoc[1]][k]:
                         step_record[x][y] = 1
                         next_step.append((x, y))
 
@@ -73,3 +76,61 @@ class StudentAgent(Agent):
                             possible_moves.append(((i, j), k))
 
         return possible_moves
+
+    def get_game_result(self, chess_board, my_pos, adv_pos):
+        # get the dimensions of the board
+        x_list = [-1, 0, 1, 0]
+        y_list = [0, 1, 0, -1]
+        x_max = chess_board.shape[0]
+        y_max = chess_board.shape[1]
+        step_record = np.zeros((x_max, y_max))
+
+        step_record[my_pos[0]][my_pos[1]] = 1
+        step_record[adv_pos[0]][adv_pos[1]] = 2
+        next_step = [my_pos]
+
+        while len(next_step) > 0:
+            lens = len(next_step)
+            for j in range(lens):
+                curLoc = next_step.pop(0)
+                for k in range(4):  # direction
+                    if chess_board[curLoc[0]][curLoc[1]][k]:
+                        continue
+
+                    x = curLoc[0] + x_list[k]
+                    y = curLoc[1] + y_list[k]
+
+                    if 0 <= x < x_max and 0 <= y < y_max:
+                        if step_record[x][y] == 2:
+                            return False, 0, 0
+                        elif step_record[x][y] == 0:
+                            step_record[x][y] = 1
+                            next_step.append((x, y))
+
+        next_step = [adv_pos]
+        print("next step:", next_step)
+        print(step_record)
+        while len(next_step) > 0:
+            lens = len(next_step)
+            for j in range(lens):
+                curLoc = next_step.pop(0)
+                for k in range(4):  # direction
+                    if chess_board[curLoc[0]][curLoc[1]][k]:
+                        continue
+                    x = curLoc[0] + x_list[k]
+                    y = curLoc[1] + y_list[k]
+                    if 0 <= x < x_max and 0 <= y < y_max \
+                            and step_record[x][y] == 0:
+                        step_record[x][y] = 2
+                        next_step.append((x, y))
+
+        my_score = 0
+        adv_score = 0
+        for i in range(x_max):
+            for j in range(y_max):
+                if step_record[i][j] == 1:
+                    my_score = my_score + 1
+                if step_record[i][j] == 2:
+                    adv_score = adv_score + 1
+
+        return True, my_score, adv_score
