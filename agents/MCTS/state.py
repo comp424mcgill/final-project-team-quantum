@@ -12,9 +12,10 @@ class State:
         get the next possible states of the current state
         next_is_my_turn: true if the next turn is mine; false otherwise
         """
-
+        cur_p_pos = self.my_pos[:]
+        another_pos = self.op_pos[:]
         if not next_is_my_turn:
-            self.my_pos, self.op_pos = self.op_pos, self.my_pos
+            cur_p_pos, another_pos = another_pos, cur_p_pos
 
         # get the dimensions of the board
         x_list = [-1, 0, 1, 0]
