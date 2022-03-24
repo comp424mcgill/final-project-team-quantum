@@ -13,14 +13,14 @@ class Node:
         child = Node(child_state, self)
         self.children.append(child)
 
-    def available_actions(self):
-        """
-        Returns a set of available moves from this node
-        """
-        return self.state.possible_moves()
-
-    def is_terminal(self):
-        """
-        Returns true if the node's state is over; false otherwise
-        """
-        return self.state.is_over()
+    # def available_actions(self):
+    #     """
+    #     Returns a set of available moves from this node
+    #     """
+    #     return self.state.possible_moves()
+    #
+    # def is_terminal(self):
+    #     """
+    #     Returns true if the node's state is over; false otherwise
+    #     """
+    #     return self.state.is_over()
