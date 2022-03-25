@@ -89,7 +89,7 @@ class MCTS:
             score_flag = 1 if cn.turn else -1
 
             # use UCT formula to calculate the score
-            child_node_score = score_flag*cn.reward/cn.visits + math.sqrt(2*math.log(node.visits/cn.visits))
+            child_node_score = score_flag*cn.reward/cn.visits + math.sqrt(2*math.log(self.cur_node.visits/cn.visits))
 
             # update the best score and the list of best moves
             if child_node_score > best_score:
