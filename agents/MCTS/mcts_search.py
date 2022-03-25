@@ -5,9 +5,9 @@ from agents.MCTS.node import Node
 
 
 class MCTS:
-    def __init__(self, my_pos, adv_pos, turn, dir_barrier, root_board):
+    def __init__(self, my_pos, adv_pos, root_board):
         # create the root
-        self.root_node = Node(my_pos, adv_pos, turn, dir_barrier)
+        self.root_node = Node(my_pos, adv_pos, 0, -1)
         self.root_board = root_board
         self.cur_node = self.root_node
         self.cur_board = root_board[:][:][:]
@@ -33,14 +33,21 @@ class MCTS:
         # update the current chess board according to the current node
         pass
 
-    def search(self):
-        for i in range(2000):
+    def search(self, search_time):
+        for i in range(search_time):
             # Select, Rollout, Backpropagation
             selected_node = self.select(self.cur_node)
             score = self.rollout(selected_node)
             self.backpropagate(selected_node, score)
 
-        return self.select_best_move(self.cur_node)
+        best_node = self.root_node.children[0]
+        max_visit = 0
+        for node in self.root_node.children:
+            if node.visits > max_visit:
+                best_node = node
+        return best_node.my_pos, best_node.dir_barrier
+
+
 
     def select(self, node: Node):
         while not node.get_game_result(self.cur_board)['is_my_win']:
