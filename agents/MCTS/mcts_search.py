@@ -12,23 +12,22 @@ class MCTS:
         self.cur_node = self.root_node
         self.cur_board = root_board[:][:][:]
 
-    def update_tree(self, new_my_pos, new_adv_pos, turn, dir_barrier, new_board):
-        move = self.get_adv_move(new_my_pos, new_adv_pos, new_board)
-        self.root_node = self.find_children_node(move)
-        self.root_board = new_board
+    def update_tree(self, new_adv_pos, new_board):
+        self.root_node = self.find_children_node(new_adv_pos, new_board)
+        self.root_board = new_board[:][:][:]
         self.cur_board = new_board[:][:][:]
         return
 
-    def get_adv_move(self, new_my_pos, new_adv_pos, new_board):
-        """function to calculate move according to new board and position"""
-        return
-
-    def find_children_node(self, move):
+    def find_children_node(self, new_adv_pos, new_board):
         """function to find next node according to adv_move"""
-        return
-
-    def find_best_child(self):
-        pass
+        direction = 0
+        for i in range(4):
+            if new_board[new_adv_pos[0]][new_adv_pos[1]][i] != self.root_board[new_adv_pos[0]][new_adv_pos[1]][i]:
+                direction = i
+                break
+        for node in self.root_node.children:
+            if node.op_pos == new_adv_pos and node.dir_barrier == direction:
+                return node
 
     def update_cur_board(self, cur_node):
         # update the current chess board according to the current node
