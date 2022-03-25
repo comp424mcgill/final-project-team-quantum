@@ -9,7 +9,7 @@ class MCTS:
         # create the root
         self.root_node = Node(my_pos, adv_pos, turn, dir_barrier)
         self.root_board = root_board
-        # self.cur_node = self.root_node
+        self.cur_node = self.root_node
         self.cur_board = root_board[:][:][:]
 
     def update_tree(self, new_my_pos, new_adv_pos, turn, dir_barrier, new_board):
@@ -37,11 +37,14 @@ class MCTS:
     def search(self):
         for i in range(2000):
             # Select, Rollout, Backpropagation
-            selected_node = self.select(self.root_node)
-            pass
+            selected_node = self.select(self.cur_node)
+            score = self.rollout(selected_node)
+            self.backpropagate(selected_node, score)
+
+        return self.select_best_move(self.cur_node)
 
     def select(self, node: Node):
-        while not node.get_game_result(self.cur_board):
+        while not node.get_game_result(self.cur_board)['is_my_win']:
             # if if's visited
             if node.is_visited:
                 node = self.select_best_move(node)
@@ -76,5 +79,27 @@ class MCTS:
 
         return random.choice(best_moves)
 
-    def rollout(self):
-        pass
+    def rollout(self, node: Node):
+        # do rollout until the node is terminal
+        while not node.get_game_result(self.cur_board)['is_my_win']:
+            next_node = random.choice(node.get_next_state(self.cur_board))
+            self.update_cur_board(next_node)
+            node = next_node
+
+        result = node.get_game_result(self.cur_board)
+        if result['my_score'] > result['adv_score']:
+            return 1
+        elif result['my_score'] == result['adv_score']:
+            return 0.5
+        else:
+            return 0
+
+
+    def backpropagate(self, node: Node, score: float):
+        while node is not None:
+            # update the node's reward and visits
+            node.reward += score
+            node.visits += 1
+
+            # goes to the node's parent
+            node = node.parent

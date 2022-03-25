@@ -115,7 +115,7 @@ class Node:
                 if step_record[i][j] == 2:
                     adv_score = adv_score + 1
 
-        return True, my_score, adv_score
+        return {'is_my_win': True, 'my_score': my_score, 'adv_score': adv_score}
 
     def add_child(self, child_state):
         child = Node(child_state, self)
