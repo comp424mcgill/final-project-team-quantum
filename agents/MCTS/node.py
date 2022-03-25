@@ -4,7 +4,7 @@ import random
 class Node:
     def __init__(self, my_pos, adv_pos, turn, dir_barrier, parent=None):
         self.my_pos = my_pos
-        self.op_pos = adv_pos
+        self.adv_pos = adv_pos
         self.turn = turn
         self.dir_barrier = dir_barrier
 
@@ -52,7 +52,7 @@ class Node:
                     for k in range(4):
                         if not chess_board[i][j][k]:
                             if self.turn:
-                                self.children.append(Node(self.my_ops, (i, j), not self.turn, k, self))
+                                self.children.append(Node(self.my_pos, (i, j), not self.turn, k, self))
                             else:
                                 self.children.append(Node((i, j), self.adv_pos, not self.turn, k, self))
         random.shuffle(self.children)
