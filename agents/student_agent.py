@@ -41,10 +41,11 @@ class StudentAgent(Agent):
         # dummy return
         if self.mcts_tree is None:
             self.mcts_tree = MCTS(my_pos, adv_pos, chess_board)
+
             return self.mcts_tree.search(1000)
         else:
             self.mcts_tree.update_tree(adv_pos, chess_board)
-            return self.mcts_tree.search(100)
+            return self.mcts_tree.search(10)
 
 
     # def get_legal_move(self, chess_board, my_pos, adv_pos, max_step):

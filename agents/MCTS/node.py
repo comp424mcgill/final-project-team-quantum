@@ -13,6 +13,9 @@ class Node:
         self.visits = 0
         self.reward = 0
 
+    def get_info(self):
+        print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
+
     def get_next_state(self, chess_board):
         """
         get the next possible states of the current state
@@ -52,9 +55,9 @@ class Node:
                     for k in range(4):
                         if not chess_board[i][j][k]:
                             if self.turn:
-                                self.children.append(Node(self.my_pos, (i, j), not self.turn, k, self))
+                                self.children.append(Node(self.my_pos[:], (i, j), not self.turn, k, self))
                             else:
-                                self.children.append(Node((i, j), self.adv_pos, not self.turn, k, self))
+                                self.children.append(Node((i, j), self.adv_pos[:], not self.turn, k, self))
         random.shuffle(self.children)
         return
 
@@ -115,7 +118,7 @@ class Node:
                 if step_record[i][j] == 2:
                     adv_score = adv_score + 1
 
-        return {'is_my_win': True, 'my_score': my_score, 'adv_score': adv_score}
+        return {0: True, 1: my_score, 2: adv_score}
 
     def add_child(self, child_state):
         child = Node(child_state, self)

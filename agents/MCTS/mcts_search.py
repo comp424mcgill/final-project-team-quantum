@@ -7,8 +7,9 @@ from agents.MCTS.node import Node
 class MCTS:
     def __init__(self, my_pos, adv_pos, root_board):
         # create the root
-        self.root_node = Node(my_pos, adv_pos, 0, -1)
-        self.root_board = root_board
+        self.root_node = Node(my_pos, adv_pos, False, -1)
+        self.root_board = root_board[:][:][:]
+        print(root_board)
         self.cur_node = self.root_node
         self.cur_board = root_board[:][:][:]
 
@@ -19,6 +20,7 @@ class MCTS:
 
     def update_tree(self, new_adv_pos, new_board):
         self.root_node = self.find_children_node(new_adv_pos, new_board)
+        self.cur_node = self.root_node
         self.root_board = new_board[:][:][:]
         self.cur_board = new_board[:][:][:]
         return
@@ -30,9 +32,14 @@ class MCTS:
             if new_board[new_adv_pos[0]][new_adv_pos[1]][i] != self.root_board[new_adv_pos[0]][new_adv_pos[1]][i]:
                 direction = i
                 break
+        print("dir::", i)
         for node in self.root_node.children:
             if node.adv_pos == new_adv_pos and node.dir_barrier == direction:
                 return node
+        # print("Match Failed!")
+        # for n in self.root_node.children:
+        #     n.get_info()
+        # print(new_adv_pos, direction)
 
     def set_barrier(self, r, c, dir):
         # Set the barrier to True
@@ -47,34 +54,76 @@ class MCTS:
         if cn.turn:
             self.set_barrier(cn.my_pos[0], cn.my_pos[1], cn.dir_barrier)
         else:
-            self.set_barrier(cn.adv_pos[0], cn.adv_pos[0], cn.dir_barrier)
+            self.set_barrier(cn.adv_pos[0], cn.adv_pos[1], cn.dir_barrier)
+
+    def set_root_barrier(self, r, c, dir):
+        # Set the barrier to True
+        print(r)
+        print(c)
+        print("beforexxx", self.root_board[r, c, dir])
+        self.root_board[r, c, dir] = True
+        print("afterxxx", self.root_board[r, c, dir])
+        # Set the opposite barrier to True
+        move = self.moves[dir]
+        self.root_board[r + move[0], c + move[1], self.opposites[dir]] = True
+
+    def update_root_board(self, best_node):
+        # update the current chess board according to the current node
+        cn = best_node
+        if cn.turn:
+            self.set_root_barrier(cn.my_pos[0], cn.my_pos[1], cn.dir_barrier)
+        else:
+            self.set_root_barrier(cn.adv_pos[0], cn.adv_pos[1], cn.dir_barrier)
 
     def search(self, search_time):
         for i in range(search_time):
             # Select, Rollout, Backpropagation
-            self.select()
-            score = self.rollout()
+            score = self.select()
             self.backpropagate(score)
             # reset the current board
             self.cur_board = self.root_board[:][:][:]
+            self.cur_node = self.root_node
 
+        # for i in range(len(self.root_node.children)):
+        #     print(i)
+        #     self.root_node.children[i].get_info()
         best_node = self.root_node.children[0]
         max_visit = 0
         for node in self.root_node.children:
             if node.visits > max_visit:
                 best_node = node
+
+        print("best_node")
+        print(best_node.get_info())
+
+
+        self.root_node = best_node
+        self.cur_node = self.root_node
+
+        print("before", self.root_board[best_node.my_pos[0]][best_node.my_pos[1]])
+        self.update_root_board(best_node)
+        print("after", self.root_board[best_node.my_pos[0]][best_node.my_pos[1]])
+        self.cur_board = self.root_board[:][:][:]
         return best_node.my_pos, best_node.dir_barrier
 
     def select(self):
-        while not self.cur_node.get_game_result(self.cur_board)['is_my_win']:
+        game_result = self.cur_node.get_game_result(self.cur_board)
+        while not game_result[0]:
+            # print("select cur_node: ")
+            #self.cur_node.get_info()
             # if if's visited
-            if self.cur_node.is_visited:
+            if self.cur_node.visits != 0:
                 self.cur_node = self.select_best_move()
             else:
                 self.cur_node = self.expand()
             self.update_cur_board()
-
-        self.update_cur_board()
+            game_result = self.cur_node.get_game_result(self.cur_board)
+        if game_result[1] > game_result[2]:
+            return 1
+        elif game_result[1] == game_result[2]:
+            return 0.5
+        else:
+            return 0
 
     def expand(self):
         self.cur_node.get_next_state(self.cur_board)
@@ -89,7 +138,10 @@ class MCTS:
             score_flag = 1 if cn.turn else -1
 
             # use UCT formula to calculate the score
-            child_node_score = score_flag*cn.reward/cn.visits + math.sqrt(2*math.log(self.cur_node.visits/cn.visits))
+            if cn.visits == 0:
+                child_node_score = math.inf
+            else:
+                child_node_score = score_flag*cn.reward/cn.visits + math.sqrt(2*math.log(self.cur_node.visits/cn.visits))
 
             # update the best score and the list of best moves
             if child_node_score > best_score:
@@ -100,22 +152,12 @@ class MCTS:
 
         return random.choice(best_moves)
 
-    def rollout(self):
-        # do rollout until the node is terminal
-        while not self.cur_node.get_game_result(self.cur_board)['is_my_win']:
-            self.cur_node = random.choice(self.cur_node.get_next_state(self.cur_board))
-            self.update_cur_board()
-
-        result = self.cur_node.get_game_result(self.cur_board)
-        if result['my_score'] > result['adv_score']:
-            return 1
-        elif result['my_score'] == result['adv_score']:
-            return 0.5
-        else:
-            return 0
-
     def backpropagate(self, score: float):
         while self.cur_node != self.root_node:
+            # print("root_node: ")
+            # self.root_node.get_info()
+            # print("cur_node: ")
+            # self.cur_node.get_info()
             # update the node's reward and visits
             self.cur_node.reward += score
             self.cur_node.visits += 1
