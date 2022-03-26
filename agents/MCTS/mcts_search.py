@@ -8,10 +8,9 @@ class MCTS:
     def __init__(self, my_pos, adv_pos, root_board):
         # create the root
         self.root_node = Node(my_pos, adv_pos, False, -1)
-        self.root_board = root_board[:][:][:]
-        print(root_board)
+        self.root_board = root_board.copy()
         self.cur_node = self.root_node
-        self.cur_board = root_board[:][:][:]
+        self.cur_board = root_board.copy()
 
         # Moves (Up, Right, Down, Left)
         self.moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
@@ -21,8 +20,8 @@ class MCTS:
     def update_tree(self, new_adv_pos, new_board):
         self.root_node = self.find_children_node(new_adv_pos, new_board)
         self.cur_node = self.root_node
-        self.root_board = new_board[:][:][:]
-        self.cur_board = new_board[:][:][:]
+        self.root_board = new_board.copy()
+        self.cur_board = new_board.copy()
         return
 
     def find_children_node(self, new_adv_pos, new_board):
@@ -81,7 +80,7 @@ class MCTS:
             score = self.select()
             self.backpropagate(score)
             # reset the current board
-            self.cur_board = self.root_board[:][:][:]
+            self.cur_board = self.root_board.copy()
             self.cur_node = self.root_node
 
         # for i in range(len(self.root_node.children)):
@@ -103,7 +102,7 @@ class MCTS:
         print("before", self.root_board[best_node.my_pos[0]][best_node.my_pos[1]])
         self.update_root_board(best_node)
         print("after", self.root_board[best_node.my_pos[0]][best_node.my_pos[1]])
-        self.cur_board = self.root_board[:][:][:]
+        self.cur_board = self.root_board.copy()
         return best_node.my_pos, best_node.dir_barrier
 
     def select(self):
