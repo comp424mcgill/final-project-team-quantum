@@ -17,13 +17,64 @@ class MCTS:
         # Opposite Directions
         self.opposites = {0: 2, 1: 3, 2: 0, 3: 1}
 
+    """reselect the root node after adv move, update the new board"""
     def update_tree(self, new_adv_pos, new_board):
-        self.root_node = self.find_children_node(new_adv_pos, new_board)
+        self.root_node = self.find_adv_node(new_adv_pos, new_board)
         self.cur_node = self.root_node
         self.cur_board = new_board
         return
 
-    def find_children_node(self, new_adv_pos, new_board):
+    def search(self, search_time):
+        start_time = time.time()
+        stimulate_time = 0
+        while time.time() - start_time <= search_time:
+            # Select, Rollout, Backpropagation
+            stimulate_time += 1
+            score = self.game_play()
+            self.backpropagate(score)
+            # reset the current board
+            self.cur_node = self.root_node
+
+        best_node = self.root_node.children[0]
+        max_visit = 0
+        # print("stimulate_time:", stimulate_time)
+        # print(len(self.root_node.children))
+        for node in self.root_node.children:
+            # print("Visit:", node.visits, "Reward:", node.reward, "Pos:", node.my_pos)
+            if node.visits > max_visit and node.reward > 0:
+                max_visit = node.visits
+                best_node = node
+        # print("max visit", max_visit)
+
+        self.root_node = best_node
+        self.cur_node = self.root_node
+        self.update_cur_board()
+        return best_node.my_pos, best_node.dir_barrier
+
+    def game_play(self):
+        game_result = self.cur_node.get_game_result(self.cur_board)
+        max_depth = 0
+        while not game_result[0] and max_depth < 40:
+            # if if's visited
+            max_depth += 1
+            if self.cur_node.visits != 0:
+                self.cur_node = self.select_best_move()
+            else:
+                self.cur_node = self.expand()
+                # print("Pos:", self.cur_node.)
+            self.update_cur_board()
+            game_result = self.cur_node.get_game_result(self.cur_board)
+        # if (max_depth>40):
+        #     print("max_depth:", max_depth)
+        if game_result[1] > game_result[2]:
+            return 1
+        elif game_result[1] == game_result[2]:
+            return 0.5
+        else:
+            return 0
+
+    # find adv move according to its new position and new board
+    def find_adv_node(self, new_adv_pos, new_board):
         """function to find next node according to adv_move"""
         direction = 0
         for i in range(4):
@@ -51,7 +102,7 @@ class MCTS:
 
     def reset_barrier(self, r, c, dir):
         self.cur_board[r, c, dir] = False
-        # Set the opposite barrier to True
+        # Set the opposite barrier to False
         move = self.moves[dir]
         self.cur_board[r + move[0], c + move[1], self.opposites[dir]] = False
 
@@ -61,48 +112,6 @@ class MCTS:
             self.reset_barrier(cn.my_pos[0], cn.my_pos[1], cn.dir_barrier)
         else:
             self.reset_barrier(cn.adv_pos[0], cn.adv_pos[1], cn.dir_barrier)
-
-    def search(self, search_time):
-        start_time = time.time()
-        while time.time() - start_time <= search_time:
-            # Select, Rollout, Backpropagation
-            score = self.select()
-            self.backpropagate(score)
-            # reset the current board
-            self.cur_node = self.root_node
-
-        best_node = self.root_node.children[0]
-        max_visit = 0
-        print(len(self.root_node.children))
-        for node in self.root_node.children:
-            print("Visit:", node.visits, "Reward:", node.reward, "Pos:", node.my_pos)
-            if node.visits > max_visit and node.reward > 0:
-                max_visit = node.visits
-                best_node = node
-
-        self.root_node = best_node
-        self.cur_node = self.root_node
-        self.update_cur_board()
-        return best_node.my_pos, best_node.dir_barrier
-
-    def select(self):
-        game_result = self.cur_node.get_game_result(self.cur_board)
-        # max_depth = 0
-        while not game_result[0]:
-            # if if's visited
-            if self.cur_node.visits != 0:
-                self.cur_node = self.select_best_move()
-            else:
-                self.cur_node = self.expand()
-                # print("Pos:", self.cur_node.)
-            self.update_cur_board()
-            game_result = self.cur_node.get_game_result(self.cur_board)
-        if game_result[1] > game_result[2]:
-            return 1
-        elif game_result[1] == game_result[2]:
-            return 0.5
-        else:
-            return 0
 
     def expand(self):
         self.cur_node.get_next_state(self.cur_board)

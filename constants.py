@@ -1,5 +1,5 @@
 # Constants used throughout the game
-MIN_BOARD_SIZE = 5
+MIN_BOARD_SIZE = 8
 MAX_BOARD_SIZE = 10
 AGENT_NOT_FOUND_MSG = (
     "Check if you have used the decorator @register_agent to register your agent!"
