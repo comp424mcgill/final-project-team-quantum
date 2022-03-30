@@ -89,7 +89,7 @@ class Node:
 
                     if 0 <= x < x_max and 0 <= y < y_max:
                         if step_record[x][y] == 2:  # meet adv
-                            return False, 0, 0
+                            return {0: False, 1: 0, 2: 0}
                         elif step_record[x][y] == 0:
                             step_record[x][y] = 1
                             next_step.append((x, y))

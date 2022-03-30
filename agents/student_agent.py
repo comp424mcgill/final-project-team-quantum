@@ -40,51 +40,51 @@ class StudentAgent(Agent):
         Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
         """
         # dummy return
-        moves = self.get_legal_move(chess_board, my_pos, adv_pos, max_step)
-        new_boards = []
-        valid = [1] * len(moves)
-        for i in range(len(moves)):
-            move = moves[i]
-            new_chess_board = chess_board.copy()
-            self.set_barrier(move[0][0], move[0][1], move[1], new_chess_board)
-            new_boards.append(new_chess_board)
-            result = self.get_game_result(new_chess_board, move[0], adv_pos)
-            if result[0] and result[1] > result[2]:
-                return move
-            if result[0] and result[2] > result[1]:
-                valid[i] = 0
-        for i in range(len(moves)):
-            # print("pm:", moves[i])
-            if valid[i] == 0:
-                continue
-            legal_moves = self.get_legal_move(new_boards[i], adv_pos, moves[i][0], max_step)
-            # print(legal_moves)
-            for lm in legal_moves:
-                new_chess_board1 = new_boards[i].copy()
-                self.set_barrier(lm[0][0], lm[0][1], lm[1], new_chess_board1)
-                result = self.get_game_result(new_chess_board1, moves[i][0], lm[0])
-                if result[0] and result[2] > result[1]:
-                    # print(lm, "Find danger")
-                    valid[i] = 0
-                    break
-        good_moves = []
-        for i in range(len(moves)):
-            if valid[i] == 1:
-                good_moves.append(moves[i])
-
-        if len(good_moves) <= 0:
-            print("I gave up!!!")
-            return random.choices(moves, weights=None, k=1)[0]
-        else:
-            return random.choices(good_moves, weights=None, k=1)[0]
+        # moves = self.get_legal_move(chess_board, my_pos, adv_pos, max_step)
+        # new_boards = []
+        # valid = [1] * len(moves)
+        # for i in range(len(moves)):
+        #     move = moves[i]
+        #     new_chess_board = chess_board.copy()
+        #     self.set_barrier(move[0][0], move[0][1], move[1], new_chess_board)
+        #     new_boards.append(new_chess_board)
+        #     result = self.get_game_result(new_chess_board, move[0], adv_pos)
+        #     if result[0] and result[1] > result[2]:
+        #         return move
+        #     if result[0] and result[2] > result[1]:
+        #         valid[i] = 0
+        # for i in range(len(moves)):
+        #     # print("pm:", moves[i])
+        #     if valid[i] == 0:
+        #         continue
+        #     legal_moves = self.get_legal_move(new_boards[i], adv_pos, moves[i][0], max_step)
+        #     # print(legal_moves)
+        #     for lm in legal_moves:
+        #         new_chess_board1 = new_boards[i].copy()
+        #         self.set_barrier(lm[0][0], lm[0][1], lm[1], new_chess_board1)
+        #         result = self.get_game_result(new_chess_board1, moves[i][0], lm[0])
+        #         if result[0] and result[2] > result[1]:
+        #             # print(lm, "Find danger")
+        #             valid[i] = 0
+        #             break
+        # good_moves = []
+        # for i in range(len(moves)):
+        #     if valid[i] == 1:
+        #         good_moves.append(moves[i])
+        #
+        # if len(good_moves) <= 0:
+        #     print("I gave up!!!")
+        #     return random.choices(moves, weights=None, k=1)[0]
+        # else:
+        #     return random.choices(good_moves, weights=None, k=1)[0]
 
         if self.mcts_tree is None:
             self.mcts_tree = MCTS(my_pos, adv_pos, chess_board)
 
-            return self.mcts_tree.search(1)
+            return self.mcts_tree.search(28)
         else:
             self.mcts_tree.update_tree(adv_pos, chess_board)
-            return self.mcts_tree.search(1)
+            return self.mcts_tree.search(1.8)
 
     def set_barrier(self, r, c, dir, board):
         # Set the barrier to True
