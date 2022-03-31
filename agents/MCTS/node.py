@@ -1,17 +1,20 @@
 import numpy as np
 import random
 
+
 class Node:
     def __init__(self, my_pos, adv_pos, turn, dir_barrier, parent=None):
         self.my_pos = my_pos
         self.adv_pos = adv_pos
         self.turn = turn
         self.dir_barrier = dir_barrier
-
         self.parent = parent
         self.children = []
         self.visits = 0
         self.reward = 0
+
+        self.x_list = [-1, 0, 1, 0]
+        self.y_list = [0, 1, 0, -1]
 
     def get_info(self):
         print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
@@ -23,50 +26,53 @@ class Node:
         """
         cur_p_pos = self.my_pos[:]
         another_pos = self.adv_pos[:]
+        # exchange position if it is
         if self.turn:
             cur_p_pos, another_pos = another_pos, cur_p_pos
 
         # get the dimensions of the board
-        x_list = [-1, 0, 1, 0]
-        y_list = [0, 1, 0, -1]
         x_max = chess_board.shape[0]
         y_max = chess_board.shape[1]
-        step_record = np.zeros((x_max, y_max))
+        max_step = (chess_board.shape[0] + 1) // 2
 
+        step_record = np.zeros((x_max, y_max))  # record the position that have been taken
         step_record[cur_p_pos[0]][cur_p_pos[1]] = 1
         step_record[another_pos[0]][another_pos[1]] = 2
-        next_step = [cur_p_pos]
+        next_step = [cur_p_pos]  # start iterate through the first position
 
-        max_step = (chess_board.shape[0] + 1) // 2
-        for i in range(max_step):
-            lens = len(next_step)
+        for i in range(max_step):  # Find max_step iterations for the steps
+            lens = len(next_step)  # how many possible position to extend
             for j in range(lens):
                 cur_loc = next_step.pop(0)
                 for k in range(4):  # direction
-                    x = cur_loc[0] + x_list[k]
-                    y = cur_loc[1] + y_list[k]
-                    if 0 <= x < x_max and 0 <= y < y_max and step_record[x][y] == 0 and not chess_board[cur_loc[0]][cur_loc[1]][k]:
+                    x = cur_loc[0] + self.x_list[k]  # new position for moving one step
+                    y = cur_loc[1] + self.y_list[k]
+                    if 0 <= x < x_max and 0 <= y < y_max and step_record[x][y] == 0 and not \
+                            chess_board[cur_loc[0]][cur_loc[1]][k]:  # check if the move is legitimate
                         step_record[x][y] = 1
                         next_step.append((x, y))
 
-        for i in range(x_max):
+        for i in range(x_max):  # find all possible positions from my position
             for j in range(y_max):
                 if step_record[i][j] == 1:
-                    for k in range(4):
+                    for k in range(4):  # find possible barrier dir to add
                         if not chess_board[i][j][k]:
                             if self.turn:
                                 self.children.append(Node(self.my_pos[:], (i, j), not self.turn, k, self))
                             else:
                                 self.children.append(Node((i, j), self.adv_pos[:], not self.turn, k, self))
+        # reshuffle the children to make sure a random child is selected
         random.shuffle(self.children)
         return
 
     def get_game_result(self, chess_board):
+        """
+        get the game result of the chess_board according to the chess_board
+        return 0: True/False Game end, 1: Score for My_pos, Score for Adv.Pos
+        """
         my_pos = self.my_pos
         adv_pos = self.adv_pos
         # get the dimensions of the board
-        x_list = [-1, 0, 1, 0]
-        y_list = [0, 1, 0, -1]
         x_max = chess_board.shape[0]
         y_max = chess_board.shape[1]
         step_record = np.zeros((x_max, y_max))
@@ -75,35 +81,34 @@ class Node:
         step_record[adv_pos[0]][adv_pos[1]] = 2
         next_step = [my_pos]
 
-        while len(next_step) > 0:
+        while len(next_step) > 0:   # find all possible areas that can be reached by My_pos
             lens = len(next_step)
             for j in range(lens):
-                curLoc = next_step.pop(0)
+                cur_loc = next_step.pop(0)
                 for k in range(4):  # direction
                     # check if the direction can move
-                    if chess_board[curLoc[0]][curLoc[1]][k]:
+                    if chess_board[cur_loc[0]][cur_loc[1]][k]:
                         continue
-
-                    x = curLoc[0] + x_list[k]
-                    y = curLoc[1] + y_list[k]
+                    x = cur_loc[0] + self.x_list[k]
+                    y = cur_loc[1] + self.y_list[k]
 
                     if 0 <= x < x_max and 0 <= y < y_max:
                         if step_record[x][y] == 2:  # meet adv
-                            return {0: False, 1: 0, 2: 0}
+                            return {0: False, 1: 0, 2: 0}   # both in the same area, game not end
                         elif step_record[x][y] == 0:
                             step_record[x][y] = 1
                             next_step.append((x, y))
 
-        next_step = [adv_pos]
+        next_step = [adv_pos]   # find possible moves for adv position
         while len(next_step) > 0:
             lens = len(next_step)
             for j in range(lens):
-                curLoc = next_step.pop(0)
+                cur_loc = next_step.pop(0)
                 for k in range(4):  # direction
-                    if chess_board[curLoc[0]][curLoc[1]][k]:
+                    if chess_board[cur_loc[0]][cur_loc[1]][k]:
                         continue
-                    x = curLoc[0] + x_list[k]
-                    y = curLoc[1] + y_list[k]
+                    x = cur_loc[0] + self.x_list[k]
+                    y = cur_loc[1] + self.y_list[k]
                     if 0 <= x < x_max and 0 <= y < y_max \
                             and step_record[x][y] == 0:
                         step_record[x][y] = 2
@@ -111,6 +116,7 @@ class Node:
 
         my_score = 0
         adv_score = 0
+        #   find area for my_pos and adv_pos
         for i in range(x_max):
             for j in range(y_max):
                 if step_record[i][j] == 1:
@@ -120,18 +126,3 @@ class Node:
 
         return {0: True, 1: my_score, 2: adv_score}
 
-    def add_child(self, child_state):
-        child = Node(child_state, self)
-        self.children.append(child)
-
-    # def available_actions(self):
-    #     """
-    #     Returns a set of available moves from this node
-    #     """
-    #     return self.state.possible_moves()
-    #
-    # def is_terminal(self):
-    #     """
-    #     Returns true if the node's state is over; false otherwise
-    #     """
-    #     return self.state.is_over()

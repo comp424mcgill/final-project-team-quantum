@@ -12,10 +12,8 @@ class MCTS:
         self.cur_node = self.root_node
         self.cur_board = root_board
 
-        # Moves (Up, Right, Down, Left)
-        self.moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
-        # Opposite Directions
-        self.opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+        self.moves = ((-1, 0), (0, 1), (1, 0), (0, -1))  # Moves (Up, Right, Down, Left)
+        self.opposites = {0: 2, 1: 3, 2: 0, 3: 1}  # Opposite Directions
 
     """reselect the root node after adv move, update the new board"""
     def update_tree(self, new_adv_pos, new_board):
@@ -24,29 +22,28 @@ class MCTS:
         self.cur_board = new_board
         return
 
+    """stimulate the game to develop the tree"""
     def search(self, search_time):
         start_time = time.time()
         stimulate_time = 0
         while time.time() - start_time <= search_time:
-            # Select, Rollout, Backpropagation
             stimulate_time += 1
-            score = self.game_play()
-            self.backpropagate(score)
-            # reset the current board
-            self.cur_node = self.root_node
+            score = self.game_play()    # start the stimulation of a game
+            self.backpropagate(score)   # update the result of this stimulation
+            self.cur_node = self.root_node  # reset the current node
 
         best_node = self.root_node.children[0]
         max_visit = 0
-        # print("stimulate_time:", stimulate_time)
-        # print(len(self.root_node.children))
-        for node in self.root_node.children:
+        print("stimulate_time:", stimulate_time)
+        print(len(self.root_node.children))
+        for node in self.root_node.children:    # find the most visited node
             # print("Visit:", node.visits, "Reward:", node.reward, "Pos:", node.my_pos)
             if node.visits > max_visit and node.reward > 0:
                 max_visit = node.visits
                 best_node = node
-        # print("max visit", max_visit)
+        print("max visit:", max_visit, "max_reward", best_node.reward)
 
-        self.root_node = best_node
+        self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
         return best_node.my_pos, best_node.dir_barrier
@@ -55,17 +52,15 @@ class MCTS:
         game_result = self.cur_node.get_game_result(self.cur_board)
         max_depth = 0
         while not game_result[0] and max_depth < 40:
-            # if if's visited
+            # if it's visited
             max_depth += 1
             if self.cur_node.visits != 0:
                 self.cur_node = self.select_best_move()
             else:
                 self.cur_node = self.expand()
-                # print("Pos:", self.cur_node.)
             self.update_cur_board()
             game_result = self.cur_node.get_game_result(self.cur_board)
-        # if (max_depth>40):
-        #     print("max_depth:", max_depth)
+
         if game_result[1] > game_result[2]:
             return 1
         elif game_result[1] == game_result[2]:
@@ -73,9 +68,8 @@ class MCTS:
         else:
             return 0
 
-    # find adv move according to its new position and new board
+    """function to find next node according to adv_move"""
     def find_adv_node(self, new_adv_pos, new_board):
-        """function to find next node according to adv_move"""
         direction = 0
         for i in range(4):
             if new_board[new_adv_pos[0]][new_adv_pos[1]][i] != self.cur_board[new_adv_pos[0]][new_adv_pos[1]][i]:
@@ -115,23 +109,21 @@ class MCTS:
 
     def expand(self):
         self.cur_node.get_next_state(self.cur_board)
-        # print("Children:", len(self.cur_node.children))
-
         return self.cur_node.children[0]
 
+    """function to select the best node"""
     def select_best_move(self):
-        """function to select the best node"""
         best_score = float('-inf')
         best_moves = []
 
         for cn in self.cur_node.children:
             score_flag = 1 if cn.turn else -1
-
             # use UCT formula to calculate the score
             if cn.visits == 0:
                 child_node_score = math.inf
             else:
-                child_node_score = score_flag*cn.reward/cn.visits + math.sqrt(2*math.log(self.cur_node.visits/cn.visits))
+                child_node_score = score_flag * cn.reward / cn.visits + math.sqrt(
+                    2 * math.log(self.cur_node.visits / cn.visits))
 
             # update the best score and the list of best moves
             if child_node_score > best_score:
@@ -151,6 +143,5 @@ class MCTS:
             # goes to the node's parent
             self.cur_node = self.cur_node.parent
 
-        self.cur_node.reward += score
+        self.cur_node.reward += score   # update the root
         self.cur_node.visits += 1
-        # goes to the node's parent
