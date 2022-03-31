@@ -1,6 +1,8 @@
 import math
 import random
 import time
+import gc
+
 
 from agents.MCTS.node import Node
 
@@ -25,6 +27,9 @@ class MCTS:
     """stimulate the game to develop the tree"""
     def search(self, search_time):
         start_time = time.time()
+        n = gc.collect()
+        print("time to collect:", time.time()-start_time)
+        print("Number of unreachable objects collected by GC:", n)
         stimulate_time = 0
         while time.time() - start_time <= search_time:
             stimulate_time += 1

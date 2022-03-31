@@ -13,9 +13,6 @@ class Node:
         self.visits = 0
         self.reward = 0
 
-        self.x_list = [-1, 0, 1, 0]
-        self.y_list = [0, 1, 0, -1]
-
     def get_info(self):
         print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
 
@@ -24,6 +21,8 @@ class Node:
         get the next possible states of the current state
         turn: true if the next turn is mine; false otherwise
         """
+        x_list = [-1, 0, 1, 0]
+        y_list = [0, 1, 0, -1]
         cur_p_pos = self.my_pos[:]
         another_pos = self.adv_pos[:]
         # exchange position if it is
@@ -45,8 +44,8 @@ class Node:
             for j in range(lens):
                 cur_loc = next_step.pop(0)
                 for k in range(4):  # direction
-                    x = cur_loc[0] + self.x_list[k]  # new position for moving one step
-                    y = cur_loc[1] + self.y_list[k]
+                    x = cur_loc[0] + x_list[k]  # new position for moving one step
+                    y = cur_loc[1] + y_list[k]
                     if 0 <= x < x_max and 0 <= y < y_max and step_record[x][y] == 0 and not \
                             chess_board[cur_loc[0]][cur_loc[1]][k]:  # check if the move is legitimate
                         step_record[x][y] = 1
@@ -70,6 +69,8 @@ class Node:
         get the game result of the chess_board according to the chess_board
         return 0: True/False Game end, 1: Score for My_pos, Score for Adv.Pos
         """
+        x_list = [-1, 0, 1, 0]
+        y_list = [0, 1, 0, -1]
         my_pos = self.my_pos
         adv_pos = self.adv_pos
         # get the dimensions of the board
@@ -89,8 +90,8 @@ class Node:
                     # check if the direction can move
                     if chess_board[cur_loc[0]][cur_loc[1]][k]:
                         continue
-                    x = cur_loc[0] + self.x_list[k]
-                    y = cur_loc[1] + self.y_list[k]
+                    x = cur_loc[0] + x_list[k]
+                    y = cur_loc[1] + y_list[k]
 
                     if 0 <= x < x_max and 0 <= y < y_max:
                         if step_record[x][y] == 2:  # meet adv
@@ -107,8 +108,8 @@ class Node:
                 for k in range(4):  # direction
                     if chess_board[cur_loc[0]][cur_loc[1]][k]:
                         continue
-                    x = cur_loc[0] + self.x_list[k]
-                    y = cur_loc[1] + self.y_list[k]
+                    x = cur_loc[0] + x_list[k]
+                    y = cur_loc[1] + y_list[k]
                     if 0 <= x < x_max and 0 <= y < y_max \
                             and step_record[x][y] == 0:
                         step_record[x][y] = 2
