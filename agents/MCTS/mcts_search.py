@@ -32,6 +32,7 @@ class MCTS:
             self.backpropagate(score)   # update the result of this stimulation
             self.cur_node = self.root_node  # reset the current node
 
+        print("time:", time.time()-start_time)
         best_node = self.root_node.children[0]
         max_visit = 0
         print("stimulate_time:", stimulate_time)
@@ -46,6 +47,7 @@ class MCTS:
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
+        print("time:", time.time()-start_time)
         return best_node.my_pos, best_node.dir_barrier
 
     def game_play(self):
