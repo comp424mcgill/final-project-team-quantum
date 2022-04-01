@@ -12,11 +12,13 @@ class Node:
         self.children = []
         self.visits = 0
         self.reward = 0
+        self.max_children = 0
+        random.seed(0)
 
     def get_info(self):
         print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
 
-    def get_next_state(self, chess_board):
+    def get_next_state(self, chess_board, shrink):
         """
         get the next possible states of the current state
         turn: true if the next turn is mine; false otherwise
@@ -28,6 +30,9 @@ class Node:
         # exchange position if it is
         if self.turn:
             cur_p_pos, another_pos = another_pos, cur_p_pos
+
+        if shrink < 4:
+            shrink = 1
 
         # get the dimensions of the board
         x_max = chess_board.shape[0]
@@ -50,18 +55,21 @@ class Node:
                             chess_board[cur_loc[0]][cur_loc[1]][k]:  # check if the move is legitimate
                         step_record[x][y] = 1
                         next_step.append((x, y))
-
+        childrens = []
         for i in range(x_max):  # find all possible positions from my position
             for j in range(y_max):
                 if step_record[i][j] == 1:
                     for k in range(4):  # find possible barrier dir to add
                         if not chess_board[i][j][k]:
                             if self.turn:
-                                self.children.append(Node(self.my_pos[:], (i, j), not self.turn, k, self))
+                                childrens.append(Node(self.my_pos[:], (i, j), not self.turn, k, self))
                             else:
-                                self.children.append(Node((i, j), self.adv_pos[:], not self.turn, k, self))
+                                childrens.append(Node((i, j), self.adv_pos[:], not self.turn, k, self))
         # reshuffle the children to make sure a random child is selected
-        random.shuffle(self.children)
+        random.shuffle(childrens)
+        # print("new length", len(childrens[len(self.children):len(self.children)+length]))
+        self.children.extend(childrens[len(self.children):len(self.children)+len(childrens)//shrink+1])
+        self.max_children = len(childrens)
         return
 
     def get_game_result(self, chess_board):
@@ -82,7 +90,7 @@ class Node:
         step_record[adv_pos[0]][adv_pos[1]] = 2
         next_step = [my_pos]
 
-        while len(next_step) > 0:   # find all possible areas that can be reached by My_pos
+        while len(next_step) > 0:  # find all possible areas that can be reached by My_pos
             lens = len(next_step)
             for j in range(lens):
                 cur_loc = next_step.pop(0)
@@ -95,12 +103,12 @@ class Node:
 
                     if 0 <= x < x_max and 0 <= y < y_max:
                         if step_record[x][y] == 2:  # meet adv
-                            return {0: False, 1: 0, 2: 0}   # both in the same area, game not end
+                            return {0: False, 1: 0, 2: 0}  # both in the same area, game not end
                         elif step_record[x][y] == 0:
                             step_record[x][y] = 1
                             next_step.append((x, y))
 
-        next_step = [adv_pos]   # find possible moves for adv position
+        next_step = [adv_pos]  # find possible moves for adv position
         while len(next_step) > 0:
             lens = len(next_step)
             for j in range(lens):
@@ -126,4 +134,3 @@ class Node:
                     adv_score = adv_score + 1
 
         return {0: True, 1: my_score, 2: adv_score}
-

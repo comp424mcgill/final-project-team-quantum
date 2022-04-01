@@ -20,14 +20,17 @@ class MCTS:
     """reselect the root node after adv move, update the new board"""
     def update_tree(self, new_adv_pos, new_board):
         self.root_node = self.find_adv_node(new_adv_pos, new_board)
+
         self.cur_node = self.root_node
+        if self.cur_node is None:
+            print("2222Select??????????????????????\n")
         self.cur_board = new_board
         return
 
     """stimulate the game to develop the tree"""
     def search(self, search_time):
-        start_time = time.time()
         n = gc.collect()
+        start_time = time.time()
         print("time to collect:", time.time()-start_time)
         print("Number of unreachable objects collected by GC:", n)
         stimulate_time = 0
@@ -56,15 +59,16 @@ class MCTS:
         return best_node.my_pos, best_node.dir_barrier
 
     def game_play(self):
+
         game_result = self.cur_node.get_game_result(self.cur_board)
-        max_depth = 0
-        while not game_result[0] and max_depth < 40:
+        shrink_factor = 1
+        while not game_result[0]:
             # if it's visited
-            max_depth += 1
-            if self.cur_node.visits != 0:
-                self.cur_node = self.select_best_move()
-            else:
-                self.cur_node = self.expand()
+            if self.cur_node.visits == 0 or len(self.cur_node.children) <= self.cur_node.visits < self.cur_node.max_children:
+                self.expand(shrink_factor)
+            shrink_factor *= 2
+
+            self.cur_node = self.select_best_move()
             self.update_cur_board()
             game_result = self.cur_node.get_game_result(self.cur_board)
 
@@ -114,9 +118,9 @@ class MCTS:
         else:
             self.reset_barrier(cn.adv_pos[0], cn.adv_pos[1], cn.dir_barrier)
 
-    def expand(self):
-        self.cur_node.get_next_state(self.cur_board)
-        return self.cur_node.children[0]
+    def expand(self, length):
+        self.cur_node.get_next_state(self.cur_board, length)
+        return
 
     """function to select the best node"""
     def select_best_move(self):
