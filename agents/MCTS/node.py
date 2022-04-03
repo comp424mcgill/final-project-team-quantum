@@ -12,7 +12,7 @@ class Node:
         self.children = []
         self.visits = 0
         self.reward = 0
-        self.max_children = 10000   # impossible number
+        self.max_children = 0   # impossible number
         random.seed(0)
 
     def get_info(self):
