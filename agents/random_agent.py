@@ -3,6 +3,8 @@ from copy import deepcopy
 from agents.agent import Agent
 from store import register_agent
 import random
+
+
 # Important: you should register your agent with a name
 def get_legal_move(chess_board, my_pos, adv_pos, max_step):
     # get the dimensions of the board
@@ -159,6 +161,7 @@ class RandomAgent(Agent):
                             possible_moves.append(((i, j), k))
 
         return possible_moves
+
     def set_barrier(self, r, c, dir, board):
         # Set the barrier to True
         opposites = {0: 2, 1: 3, 2: 0, 3: 1}
@@ -225,4 +228,3 @@ class RandomAgent(Agent):
                     adv_score = adv_score + 1
 
         return True, my_score, adv_score
-

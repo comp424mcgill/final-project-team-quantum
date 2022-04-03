@@ -42,7 +42,7 @@ class StudentAgent(Agent):
 
         if self.mcts_tree is None:  # initiate the tree
             self.mcts_tree = MCTS(my_pos, adv_pos, chess_board)
-            return self.mcts_tree.search(2)
+            return self.mcts_tree.search(28)
         else:
             self.mcts_tree.update_tree(adv_pos, chess_board)
             return self.mcts_tree.search(1.8)

@@ -12,7 +12,7 @@ class Node:
         self.children = []
         self.visits = 0
         self.reward = 0
-        self.max_children = 0
+        self.max_children = 10000   # impossible number
         random.seed(0)
 
     def get_info(self):
@@ -68,7 +68,7 @@ class Node:
         # reshuffle the children to make sure a random child is selected
         random.shuffle(childrens)
         # print("new length", len(childrens[len(self.children):len(self.children)+length]))
-        self.children.extend(childrens[len(self.children):len(self.children)+len(childrens)//shrink+1])
+        self.children.extend(childrens[len(self.children):len(self.children)+len(childrens)//shrink+2])
         self.max_children = len(childrens)
         return
 

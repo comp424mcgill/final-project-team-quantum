@@ -29,8 +29,8 @@ class MCTS:
 
     """stimulate the game to develop the tree"""
     def search(self, search_time):
-        n = gc.collect()
         start_time = time.time()
+        n = gc.collect()
         print("time to collect:", time.time()-start_time)
         print("Number of unreachable objects collected by GC:", n)
         stimulate_time = 0
@@ -40,11 +40,8 @@ class MCTS:
             self.backpropagate(score)   # update the result of this stimulation
             self.cur_node = self.root_node  # reset the current node
 
-        print("time:", time.time()-start_time)
         best_node = self.root_node.children[0]
         max_visit = 0
-        print("stimulate_time:", stimulate_time)
-        print(len(self.root_node.children))
         for node in self.root_node.children:    # find the most visited node
             # print("Visit:", node.visits, "Reward:", node.reward, "Pos:", node.my_pos)
             if node.visits > max_visit and node.reward > 0:
@@ -55,7 +52,7 @@ class MCTS:
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
-        print("time:", time.time()-start_time)
+        print("stimulate_time:", stimulate_time)
         return best_node.my_pos, best_node.dir_barrier
 
     def game_play(self):
@@ -64,7 +61,7 @@ class MCTS:
         shrink_factor = 1
         while not game_result[0]:
             # if it's visited
-            if self.cur_node.visits == 0 or len(self.cur_node.children) <= self.cur_node.visits < self.cur_node.max_children:
+            if len(self.cur_node.children) < self.cur_node.max_children and len(self.cur_node.children) <= self.cur_node.visits:
                 self.expand(shrink_factor)
             shrink_factor *= 2
 
@@ -118,8 +115,8 @@ class MCTS:
         else:
             self.reset_barrier(cn.adv_pos[0], cn.adv_pos[1], cn.dir_barrier)
 
-    def expand(self, length):
-        self.cur_node.get_next_state(self.cur_board, length)
+    def expand(self, shrink_factor):
+        self.cur_node.get_next_state(self.cur_board, shrink_factor)
         return
 
     """function to select the best node"""
