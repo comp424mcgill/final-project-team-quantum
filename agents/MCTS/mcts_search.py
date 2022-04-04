@@ -66,12 +66,12 @@ class MCTS:
             if node.visits > max_visit and node.reward > 0:
                 max_visit = node.visits
                 best_node = node
-        # print("max visit:", max_visit, "max_reward", best_node.reward)
-
+        print("max visit:", max_visit, "max_reward", best_node.reward)
+        print("Stimulate time:", stimulate_time)
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
-        # print("time to return:", time.time()-start_time)
+        print("time to return:", time.time()-start_time)
 
         return best_node.my_pos, best_node.dir_barrier
 
@@ -80,15 +80,39 @@ class MCTS:
         game_result = self.cur_node.get_game_result(self.cur_board)
         shrink_factor = 1
         depth = 0
-        while not game_result[0] and depth < 10:
+        flag = False
+        self.expand(1)
+        self.cur_node = self.select_best_move()
+        self.update_cur_board()
+        while not game_result[0]:
             # if it's visited
-            if self.cur_node.visits == 0 or len(self.cur_node.children) <= self.cur_node.visits < self.cur_node.max_children:
-                self.expand(shrink_factor)
-            shrink_factor *= 2
-            depth += 1
-
-            self.cur_node = self.select_best_move()
-            self.update_cur_board()
+            new_pos, new_dir = self.cur_node.get_one_child(self.cur_board)
+            for node in self.cur_node.children:
+                if node.turn:
+                    if new_pos[0] == node.adv_pos[0] and new_pos[1] == node.adv_pos[1] and new_dir == node.dir_barrier:
+                        self.cur_node = node
+                        self.update_cur_board()
+                        flag = True
+                        break
+                else:
+                    if new_pos[0] == node.my_pos[0] and new_pos[1] == node.my_pos[1] and new_dir == node.dir_barrier:
+                        self.cur_node = node
+                        self.update_cur_board()
+                        flag = True
+                        break
+            if not flag:
+                if self.cur_node.turn:
+                    new_node = Node(self.cur_node.my_pos[:], new_pos[:], not self.cur_node.turn, new_dir, self.cur_node)
+                else:
+                    new_node = Node(new_pos[:], self.cur_node.adv_pos[:], not self.cur_node.turn, new_dir, self.cur_node)
+                self.cur_node = new_node
+                self.update_cur_board()
+            # if self.cur_node.visits == 0 or len(self.cur_node.children) <= self.cur_node.visits < self.cur_node.max_children:
+            #     self.expand(shrink_factor)
+            # shrink_factor *= 2
+            # depth += 1
+            # self.cur_node = self.select_best_move()
+            # self.update_cur_board()
             game_result = self.cur_node.get_game_result(self.cur_board)
 
         if game_result[1] > game_result[2]:

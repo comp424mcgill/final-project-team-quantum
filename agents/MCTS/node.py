@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from copy import deepcopy
 
 
 class Node:
@@ -17,6 +18,42 @@ class Node:
 
     def get_info(self):
         print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
+
+    def get_one_child(self, chess_board):
+        max_step = (chess_board.shape[0] + 1) // 2
+        next_pos = deepcopy(self.my_pos)
+        moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+        steps = np.random.randint(0, max_step + 1)
+        if self.turn:
+            next_pos = deepcopy(self.adv_pos)
+        else:
+            next_pos = deepcopy(self.my_pos)
+
+        # Random Walk
+        for _ in range(steps):
+            r, c = next_pos
+            dir = np.random.randint(0, 4)
+            # Special Case enclosed by Adversary
+            k = 0
+            while chess_board[r, c, dir] or next_pos == self.adv_pos:
+                k += 1
+                if k > 300:
+                    break
+                dir = np.random.randint(0, 4)
+                m_r, m_c = moves[dir]
+                next_pos = (r + m_r, c + m_c)
+
+            if k > 300:
+                next_pos = self.my_pos
+                break
+
+        # Put Barrier
+        dir = np.random.randint(0, 4)
+        r, c = next_pos
+        while chess_board[r, c, dir]:
+            dir = np.random.randint(0, 4)
+
+        return next_pos, dir
 
     def get_next_state(self, chess_board, shrink):
         """
