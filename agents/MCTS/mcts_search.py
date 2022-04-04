@@ -19,8 +19,8 @@ class MCTS:
 
     """reselect the root node after adv move, update the new board"""
     def update_tree(self, new_adv_pos, new_board):
+        self.expand(1)
         self.root_node = self.find_adv_node(new_adv_pos, new_board)
-
         self.cur_node = self.root_node
         self.cur_board = new_board
         return
@@ -38,20 +38,20 @@ class MCTS:
             if result[0] and result[1] > result[2]:
                 self.root_node = child  # update the tree and board according to the best move
                 return child.my_pos, child.dir_barrier
-            self.expand(1)
-            for grandson in child.children:
-                self.cur_node = grandson
-                self.update_cur_board()
-                result = child.get_game_result(self.cur_board)
-                if result[0] and result[1] < result[2]:
-                    self.cur_node.parent.reward = -10000
-                    self.reset_cur_board()
-                    break
-                self.reset_cur_board()
-            self.cur_node = self.cur_node.parent
+            # self.expand(1)
+            # for grandson in child.children:
+            #     self.cur_node = grandson
+            #     self.update_cur_board()
+            #     result = child.get_game_result(self.cur_board)
+            #     if result[0] and result[1] < result[2]:
+            #         self.cur_node.parent.reward = -10000
+            #         self.reset_cur_board()
+            #         break
+            #     self.reset_cur_board()
+            # self.cur_node = self.cur_node.parent
             self.reset_cur_board()
         self.cur_node = self.root_node
-        print("time to cal:", time.time()-start_time)
+    #   print("time to cal:", time.time()-start_time)
 
         while time.time() - start_time <= search_time:
             stimulate_time += 1
@@ -66,12 +66,12 @@ class MCTS:
             if node.visits > max_visit and node.reward > 0:
                 max_visit = node.visits
                 best_node = node
-        print("max visit:", max_visit, "max_reward", best_node.reward)
+        # print("max visit:", max_visit, "max_reward", best_node.reward)
 
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
-        print("time to return:", time.time()-start_time)
+        # print("time to return:", time.time()-start_time)
 
         return best_node.my_pos, best_node.dir_barrier
 
