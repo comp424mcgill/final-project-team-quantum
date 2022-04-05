@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from copy import deepcopy
 
 
 class Node:
@@ -12,11 +13,58 @@ class Node:
         self.children = []
         self.visits = 0
         self.reward = 0
-        self.max_children = 0   # impossible number
+        self.max_children = 0  # impossible number
         random.seed(0)
 
     def get_info(self):
         print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
+
+    def get_one_child(self, chess_board):
+        max_step = (chess_board.shape[0] + 1) // 2
+
+        moves = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        oppsite = {(-1, 0): (1, 0), (0, 1): (0, -1), (1, 0): (-1, 0), (0, -1): (0, 1), (0, 0): (0, 0)}
+        steps = np.random.randint(0, max_step + 1)
+        if self.turn:
+            next_pos = deepcopy(self.adv_pos)
+            adv_pos = deepcopy(self.my_pos)
+        else:
+            next_pos = deepcopy(self.my_pos)
+            adv_pos = deepcopy(self.adv_pos)
+        last_move = (0, 0)
+        for _ in range(steps):
+            r, c = next_pos
+            possible_move = []
+            for i in range(4):
+                move = moves[i]
+                if not chess_board[r, c, i] and (r + move[0], c + move[1]) != adv_pos and move != oppsite[last_move]:
+                    possible_move.append(move)
+            if len(possible_move) > 0:
+                last_move = random.choice(possible_move)
+            else:
+                break
+            next_pos = (r + last_move[0], c + last_move[1])
+
+        possible_dir = []
+        for dirc in range(4):
+            if not chess_board[next_pos[0], next_pos[1], dirc]:
+                possible_dir.append(dirc)
+        next_dir = random.choice(possible_dir)
+
+        for node in self.children:
+            if node.turn:
+                if next_pos[0] == node.adv_pos[0] and next_pos[1] == node.adv_pos[1] and next_dir == node.dir_barrier:
+                    return node
+            else:
+                if next_pos[0] == node.my_pos[0] and next_pos[1] == node.my_pos[1] and next_dir == node.dir_barrier:
+                    return node
+
+        if self.turn:
+            new_node = Node(self.my_pos[:], next_pos[:], not self.turn, next_dir, self)
+        else:
+            new_node = Node(next_pos[:], self.adv_pos[:], not self.turn, next_dir, self)
+        self.children.append(new_node)
+        return new_node
 
     def get_next_state(self, chess_board, shrink):
         """
@@ -68,7 +116,7 @@ class Node:
         # reshuffle the children to make sure a random child is selected
         random.shuffle(childrens)
         # print("new length", len(childrens[len(self.children):len(self.children)+length]))
-        self.children.extend(childrens[len(self.children):len(self.children)+len(childrens)//shrink+2])
+        self.children.extend(childrens[len(self.children):len(self.children) + len(childrens) // shrink + 2])
         self.max_children = len(childrens)
         return
 

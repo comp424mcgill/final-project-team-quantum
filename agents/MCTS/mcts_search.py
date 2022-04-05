@@ -29,65 +29,48 @@ class MCTS:
     def search(self, search_time):
         start_time = time.time()
         stimulate_time = 0
-
         self.expand(1)
+        """check if can win in one step"""
         for child in self.root_node.children:
             self.cur_node = child
             self.update_cur_board()
+            self.expand(1)
             result = child.get_game_result(self.cur_board)
             if result[0] and result[1] > result[2]:
                 self.root_node = child  # update the tree and board according to the best move
                 return child.my_pos, child.dir_barrier
-            # self.expand(1)
-            # for grandson in child.children:
-            #     self.cur_node = grandson
-            #     self.update_cur_board()
-            #     result = child.get_game_result(self.cur_board)
-            #     if result[0] and result[1] < result[2]:
-            #         self.cur_node.parent.reward = -10000
-            #         self.reset_cur_board()
-            #         break
-            #     self.reset_cur_board()
-            # self.cur_node = self.cur_node.parent
             self.reset_cur_board()
         self.cur_node = self.root_node
-    #   print("time to cal:", time.time()-start_time)
 
+        """stimulate game and update reward until time expired"""
         while time.time() - start_time <= search_time:
             stimulate_time += 1
             score = self.game_play()    # start the stimulation of a game
             self.backpropagate(score)   # update the result of this stimulation
             self.cur_node = self.root_node  # reset the current node
 
+        """select the best move for children"""
         best_node = self.root_node.children[0]
         max_visit = 0
         for node in self.root_node.children:    # find the most visited node
-            # print("Visit:", node.visits, "Reward:", node.reward, "Pos:", node.my_pos)
             if node.visits > max_visit and node.reward > 0:
                 max_visit = node.visits
                 best_node = node
-        # print("max visit:", max_visit, "max_reward", best_node.reward)
-
+        print("stimulate time", stimulate_time, "max visit:", max_visit, "max_reward", best_node.reward)
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
-        # print("time to return:", time.time()-start_time)
-
+        print("time to return:", time.time()-start_time)
         return best_node.my_pos, best_node.dir_barrier
 
     def game_play(self):
 
         game_result = self.cur_node.get_game_result(self.cur_board)
-        shrink_factor = 1
-        depth = 0
-        while not game_result[0] and depth < 10:
-            # if it's visited
-            if self.cur_node.visits == 0 or len(self.cur_node.children) <= self.cur_node.visits < self.cur_node.max_children:
-                self.expand(shrink_factor)
-            shrink_factor *= 2
-            depth += 1
+        self.cur_node = self.select_best_move()
+        self.update_cur_board()
 
-            self.cur_node = self.select_best_move()
+        while not game_result[0]:
+            self.cur_node = self.cur_node.get_one_child(self.cur_board)
             self.update_cur_board()
             game_result = self.cur_node.get_game_result(self.cur_board)
 
