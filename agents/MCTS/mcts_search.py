@@ -56,24 +56,26 @@ class MCTS:
             if node.visits > max_visit and node.reward > 0:
                 max_visit = node.visits
                 best_node = node
-        print("stimulate time", stimulate_time, "max visit:", max_visit, "max_reward", best_node.reward)
+        # print("stimulate time", stimulate_time, "max visit:", max_visit, "max_reward", best_node.reward)
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
-        print("time to return:", time.time()-start_time)
+        # print("time to return:", time.time()-start_time)
         return best_node.my_pos, best_node.dir_barrier
 
     def game_play(self):
-
         game_result = self.cur_node.get_game_result(self.cur_board)
+        """select next node to explore"""
         self.cur_node = self.select_best_move()
         self.update_cur_board()
 
+        """random play the game until it end"""
         while not game_result[0]:
             self.cur_node = self.cur_node.get_one_child(self.cur_board)
             self.update_cur_board()
             game_result = self.cur_node.get_game_result(self.cur_board)
 
+        "return the result of game according to the game play"
         if game_result[1] > game_result[2]:
             return 1
         elif game_result[1] == game_result[2]:
@@ -92,6 +94,7 @@ class MCTS:
             if node.adv_pos == new_adv_pos and node.dir_barrier == direction:
                 return node
 
+    """Four helper method to set and reset current board according to the current node's action"""
     def set_barrier(self, r, c, dir):
         # Set the barrier to True
         self.cur_board[r, c, dir] = True
@@ -120,11 +123,12 @@ class MCTS:
         else:
             self.reset_barrier(cn.adv_pos[0], cn.adv_pos[1], cn.dir_barrier)
 
+    """find possoble moves of curent node and put them into the children nodes"""
     def expand(self, shrink_factor):
         self.cur_node.get_next_state(self.cur_board, shrink_factor)
         return
 
-    """function to select the best node"""
+    """function to select the best node according to UCT"""
     def select_best_move(self):
         best_score = float('-inf')
         best_moves = []
@@ -147,6 +151,7 @@ class MCTS:
 
         return random.choice(best_moves)
 
+    """ update the visit and result of current tree """
     def backpropagate(self, score: float):
         while self.cur_node != self.root_node:
             # update the node's reward and visits

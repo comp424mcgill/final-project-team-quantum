@@ -40,10 +40,10 @@ class StudentAgent(Agent):
         Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
         """
 
-        if self.mcts_tree is None:  # initiate the tree
+        if self.mcts_tree is None:  # initiate the tree for the first step, run 30s
             self.mcts_tree = MCTS(my_pos, adv_pos, chess_board)
             return self.mcts_tree.search(28)
-        else:
+        else:   # develop the tree in 2 seconds
             self.mcts_tree.update_tree(adv_pos, chess_board)
             return self.mcts_tree.search(1.8)
 

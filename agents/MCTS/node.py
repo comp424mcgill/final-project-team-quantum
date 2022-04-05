@@ -16,9 +16,11 @@ class Node:
         self.max_children = 0  # impossible number
         random.seed(0)
 
+    """function to print out the infomation of a node"""
     def get_info(self):
         print(self.my_pos, self.adv_pos, self.turn, self.dir_barrier, self.visits, self.reward)
 
+    """ random select a possible move from current node"""
     def get_one_child(self, chess_board):
         max_step = (chess_board.shape[0] + 1) // 2
 
@@ -32,6 +34,8 @@ class Node:
             next_pos = deepcopy(self.my_pos)
             adv_pos = deepcopy(self.adv_pos)
         last_move = (0, 0)
+
+        """find a random location that can be reached"""
         for _ in range(steps):
             r, c = next_pos
             possible_move = []
@@ -44,13 +48,14 @@ class Node:
             else:
                 break
             next_pos = (r + last_move[0], c + last_move[1])
-
+        """find one possible barrier to put"""
         possible_dir = []
         for dirc in range(4):
             if not chess_board[next_pos[0], next_pos[1], dirc]:
                 possible_dir.append(dirc)
         next_dir = random.choice(possible_dir)
 
+        """check if the move is already existed in the children"""
         for node in self.children:
             if node.turn:
                 if next_pos[0] == node.adv_pos[0] and next_pos[1] == node.adv_pos[1] and next_dir == node.dir_barrier:
@@ -82,7 +87,7 @@ class Node:
         if shrink < 4:
             shrink = 1
 
-        # get the dimensions of the board
+        """get the dimensions of the board"""
         x_max = chess_board.shape[0]
         y_max = chess_board.shape[1]
         max_step = (chess_board.shape[0] + 1) // 2
