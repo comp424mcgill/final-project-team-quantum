@@ -84,9 +84,6 @@ class Node:
         if self.turn:
             cur_p_pos, another_pos = another_pos, cur_p_pos
 
-        if shrink < 4:
-            shrink = 1
-
         """get the dimensions of the board"""
         x_max = chess_board.shape[0]
         y_max = chess_board.shape[1]
@@ -108,21 +105,17 @@ class Node:
                             chess_board[cur_loc[0]][cur_loc[1]][k]:  # check if the move is legitimate
                         step_record[x][y] = 1
                         next_step.append((x, y))
-        childrens = []
         for i in range(x_max):  # find all possible positions from my position
             for j in range(y_max):
                 if step_record[i][j] == 1:
                     for k in range(4):  # find possible barrier dir to add
                         if not chess_board[i][j][k]:
                             if self.turn:
-                                childrens.append(Node(self.my_pos[:], (i, j), not self.turn, k, self))
+                                self.children.append(Node(self.my_pos[:], (i, j), not self.turn, k, self))
                             else:
-                                childrens.append(Node((i, j), self.adv_pos[:], not self.turn, k, self))
+                                self.children.append(Node((i, j), self.adv_pos[:], not self.turn, k, self))
         # reshuffle the children to make sure a random child is selected
-        random.shuffle(childrens)
-        # print("new length", len(childrens[len(self.children):len(self.children)+length]))
-        self.children.extend(childrens[len(self.children):len(self.children) + len(childrens) // shrink + 2])
-        self.max_children = len(childrens)
+        random.shuffle(self.children)
         return
 
     def get_game_result(self, chess_board):

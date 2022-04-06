@@ -19,7 +19,6 @@ class MCTS:
 
     """reselect the root node after adv move, update the new board"""
     def update_tree(self, new_adv_pos, new_board):
-        self.expand(1)
         self.root_node = self.find_adv_node(new_adv_pos, new_board)
         self.cur_node = self.root_node
         self.cur_board = new_board
@@ -34,13 +33,13 @@ class MCTS:
         for child in self.root_node.children:
             self.cur_node = child
             self.update_cur_board()
-            self.expand(1)
             result = child.get_game_result(self.cur_board)
             if result[0] and result[1] > result[2]:
                 self.root_node = child  # update the tree and board according to the best move
                 return child.my_pos, child.dir_barrier
             self.reset_cur_board()
         self.cur_node = self.root_node
+        # print("time to cal:", time.time()-start_time)
 
         """stimulate game and update reward until time expired"""
         while time.time() - start_time <= search_time:
@@ -60,6 +59,7 @@ class MCTS:
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
+        self.expand(1)
         # print("time to return:", time.time()-start_time)
         return best_node.my_pos, best_node.dir_barrier
 
@@ -93,6 +93,10 @@ class MCTS:
         for node in self.root_node.children:
             if node.adv_pos == new_adv_pos and node.dir_barrier == direction:
                 return node
+
+        for node in self.root_node.children:
+            node.get_info()
+        print("nothing found", direction)
 
     """Four helper method to set and reset current board according to the current node's action"""
     def set_barrier(self, r, c, dir):
