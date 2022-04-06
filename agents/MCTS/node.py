@@ -26,7 +26,7 @@ class Node:
 
         moves = [(-1, 0), (0, 1), (1, 0), (0, -1)]
         oppsite = {(-1, 0): (1, 0), (0, 1): (0, -1), (1, 0): (-1, 0), (0, -1): (0, 1), (0, 0): (0, 0)}
-        steps = np.random.randint(0, max_step + 1)
+        steps = np.random.randint(0, max_step)
         if self.turn:
             next_pos = deepcopy(self.adv_pos)
             adv_pos = deepcopy(self.my_pos)
