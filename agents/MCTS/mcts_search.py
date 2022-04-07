@@ -42,7 +42,7 @@ class MCTS:
         # print("time to cal:", time.time()-start_time)
 
         """stimulate game and update reward until time expired"""
-        while time.time() - start_time <= search_time:
+        while time.time() - start_time <= search_time and stimulate_time < 3000:
             stimulate_time += 1
             score = self.game_play()    # start the stimulation of a game
             self.backpropagate(score)   # update the result of this stimulation
@@ -55,12 +55,12 @@ class MCTS:
             if node.visits > max_visit and node.reward > 0:
                 max_visit = node.visits
                 best_node = node
-        # print("stimulate time", stimulate_time, "max visit:", max_visit, "max_reward", best_node.reward)
+        print("stimulate time", stimulate_time, "max visit:", max_visit, "max_reward", best_node.reward)
         self.root_node = best_node  # update the tree and board according to the best move
         self.cur_node = self.root_node
         self.update_cur_board()
         self.expand(1)
-        # print("time to return:", time.time()-start_time)
+        print("time to return:", time.time()-start_time)
         return best_node.my_pos, best_node.dir_barrier
 
     def game_play(self):
